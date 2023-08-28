@@ -186,5 +186,6 @@ def main():
     if num_of_tries == MAX_TRIES:
         print("LOSE \nThe word was {}".format(secret_word.upper()))
 
+
 if __name__ == "__main__":
     main()
