@@ -1,6 +1,7 @@
 import os
+import random
 
-HANGMAN_ASCII_ART = ("""welcome to the game hangman /
+HANGMAN_ASCII_ART = ("""welcome to the game hangman 
   _    _                                         
  | |  | |                                        
  | |__| | __ _ _ __   __ _ _ __ ___   __ _ _ __  
@@ -10,103 +11,117 @@ HANGMAN_ASCII_ART = ("""welcome to the game hangman /
                       __/ |                      
                      |___/""")
 
-MAX_TRIES = (6)
+MAX_TRIES = 6
 
-HANGMAN_PHOTOS = {"stage 0": "x-------x", "stage 1": """x-------x
+MAX_INPUT_ATTEMPTS = 2
+
+DEFAULT_PATH = r"C:\Users\GMO\Desktop\sample.txt"
+
+HANGMAN_PHOTOS = [r"x-------x", r"""x-------x
 |
 |
 |
 |
-|""", "stage 2": """x-------x
+|""", r"""x-------x
 |       |
 |       0
 |
 |
-|""", "stage 3": """x-------x
+|""", r"""x-------x
 |       |
 |       0
 |       |
 |
 |
-""", "stage 4": """x-------x
+""", r"""x-------x
 |       |
 |       0
-|      /|\\
+|      /|\
 |
-|""", "stage 5": """x-------x
+|""", r"""x-------x
 |       |
 |       0
-|      /|\\
+|      /|\
 |      /
-|""", "stage 6": """x-------x
+|""", r"""x-------x
 |       |
 |       0
-|      /|\\
-|      / \\
-|"""}
+|      /|\
+|      / \
+|"""]
 
-def opening_screen():
+def print_opening_screen() -> None:
     """
-    the func prints the opening screen
-    :return void:
+    The func prints the opening screen.
+    :return Void:
     """
-    print(HANGMAN_ASCII_ART, "Your number of max tries is: {}".format(MAX_TRIES), sep='\n')
+    print(HANGMAN_ASCII_ART, f"Your number of max tries is: {MAX_TRIES}", sep="\n")
 
-def fix_path(file_path):
+def get_path_from_user() -> str:
     """
-    the funcs rempve
-    :param file_path:
-    :return:
+    The funcs get a path file from the user.
+    :return The file path which inclides the words to choose from - string :
     """
-    if (file_path[0] == "\"" or file_path[0] == "\'") and (file_path[-1] == "\"" or file_path[-1] == "\'"):
-        return file_path[1:-1]
-    else:
-        return file_path
+    for attempt in range(MAX_INPUT_ATTEMPTS + 1):
+        path = input("Enter file path: ")
+        path = path.strip('"\'')
+        if os.path.isfile(path) and read_file(path):
+            return path
+        else:
+            print("The path is not valid or doesn't point to a file or empty.")
+    print("It seems like you are having trouble finding a path, don't worry it's alright! I will just use my deafult path :)")
+    return DEFAULT_PATH
 
-def get_data_from_user():
+def get_index_from_user() -> int:
     """
-    the funcs get the path file and the index of word from the user
-    :return file path - the path of file - string, the index of the word - int:
+    The funcs get the path file which includes the words and the index of word from the user.
+    :return A tuple containing the file path - string and the index of the word - int.:
     """
-    file_path_of_words = fix_path(input("Enter file path: "))
-    while not os.path.exists(file_path_of_words):
-        print("The path is not valid or doesn't point to a file.")
-        file_path_of_words = fix_path(input("Enter file path: "))
-    index_of_word = input("Enter_index: ")
-    while not index_of_word.isnumeric():
-        print("The index should be a number")
-        index_of_word = input("Enter_index: ")
-    return file_path_of_words, int(index_of_word)
+    for attempt in range(MAX_INPUT_ATTEMPTS + 1):
+        word_index = input("Enter the number of your secret word: ")
+        if word_index.isnumeric():
+            return word_index
+        else:
+            print("Be aware you write a number")
+    print("It seems like you are having trouble choosing a number, don't worry it's alright! I will just pick one for u :)")
+    return random.randint(1, 1000)
 
-def choose_word(file_path, index):
+def read_file(path) -> list:
     """
-    the funcs return the word in the number of the index
-    :param file_path - the path of the file, str:
+    The funcs read the file and return all the words in it within a list.
+    :param path: Str, the path of the file which contains the words.
+    :return: List, the list of the words in the file.
+    """
+    with open(path, "r") as words_file:
+        words = words_file.readlines()
+    return words
+
+def choose_word(path, index) -> str:
+    """
+    The funcs return the word in the number of the index.
+    :param path - the path of the file which contains the words, str:
     :param index - the index of the word to guess, int:
-    :return the word in the number of the index,string:
+    :return The word in the number of the index,string:
     """
-    with open(file_path, "r") as source:
-        words = source.readlines()
-    words = words[0].split()
-    length = len(set(words))
-    real_index = int(index) % len(words)
-    word = words[real_index-1]
+    words = read_file(path)[0].split()
+    index_in_bounds = index % len(words) - 1
+    word = words[index_in_bounds]
     return word
 
-def print_hangman(num_of_tries):
+def print_hangman(num_of_tries) -> None:
     """
-    the funcs prints the hangman state according to the number of tries
+    The funcs prints the hangman state according to the number of tries.
     :param num_of_tries - how many times the player guessed wrong - int:
-    :return - void:
+    :return - Void:
     """
-    print(HANGMAN_PHOTOS["stage {}".format(num_of_tries)], "\n")
+    print(HANGMAN_PHOTOS[num_of_tries], "\n")
 
-def show_hidden_word(secret_word, old_letters_guessed):
+def show_hidden_word(secret_word, old_letters_guessed) -> str:
     """
-    the funcs prints the word the player need to guess and the letters he had already guessed
+    The funcs prints the word the player need to guess and the letters he had already guessed.
     :param secret_word - the word he needs to guess, a string:
     :param old_letters_guessed - the letters he had already guessed, a list:
-    :return - the word he need to guess with the letters he had already guessed, a string:
+    :return - The word he need to guess with the letters he had already guessed, a string:
     """
     hidden_word = ""
     for letter in secret_word:
@@ -116,48 +131,48 @@ def show_hidden_word(secret_word, old_letters_guessed):
             hidden_word += letter + " "
     return hidden_word[:-1]
 
-def try_update_letter_guessed(letter_guessed, old_letters_guessed):
+def try_update_letter_guessed(letter_guessed, old_letters_guessed) -> bool:
     """
-    the funcs receive the user's guess and old guesses and  add his guess to the list of guesses if the letter is one alphabetic letter.
+    The funcs receive the user's guess and old guesses and  add his guess to the list of guesses if the letter is one alphabetic letter.
     :param letter_guessed - the letter the user gueesed, string:
     :param old_letters_guessed - the guess he gussed before, list:
-    :return if the letter is ok, boolean:
+    :return If the letter is ok, boolean:
     """
     if check_valid_input(letter_guessed, old_letters_guessed):
         return True
     else:
         print("X - not a valid input, enter 1 new alphabetic letter")
         if old_letters_guessed:
-            print("the letters you already guessed are:", " -> ".join(sorted(old_letters_guessed)))
+            print("the letters you have already guessed are:", " -> ".join(sorted(old_letters_guessed)))
         return False
 
-def check_valid_input(letter_guessed, old_letters_guessed):
+def check_valid_input(letter_guessed, old_letters_guessed) -> bool:
     """
-    the func tells if the letter guessed is only one alphabetic letter and was not guessed before
+    The func tells if the letter guessed is only one alphabetic letter and was not guessed before.
     :param letter_guessed - the letter we check, string:
     :param old_letter_guessed - all the letters the player already guessed, list:
-    :return if the letter is valid and was not guessed before, boolean:
+    :return If the letter is valid and was not guessed before, boolean:
     """
     letter_guessed = letter_guessed.lower()
     return len(letter_guessed) == 1 and letter_guessed.isalpha() and letter_guessed not in old_letters_guessed
 
-def check_win(secret_word, old_letters_guessed):
+def check_win(secret_word, old_letters_guessed) -> bool:
     """
-    the funcs checks if the player won and guessed all the letters
+    The funcs checks if the player won and guessed all the letters.
     :param secret_word - the word he needs to guess, a string:
     :param old_letters_guessed - the letters he had already guessed, a list:
-    :return - void:
+    :return - Void:
     """
     return "_" not in show_hidden_word(secret_word, old_letters_guessed)
 
-def guessing_a_letter(old_letters_guessed, secret_word, num_of_tries):
+def guessing_a_letter(old_letters_guessed, secret_word, num_of_tries) -> tuple[list, int]:
     """
-    the funcs lets the player guess a letter, show him the state of the word and the state of the hangman and old
-    guessed letters if he guessed wrong
+    The funcs lets the player guess a letter, show him the state of the word and the state of the hangman and old
+    guessed letters if he guessed wrong.
     :param old_letters_guessed - all the letters he already guessed - list:
     :param secret_word - the word he needs to guess - string:
     :param num_of_tries - the number of wrong guesses - num:
-    :return - the updated list of the letters he guessed - list, the updated number of wrong guesses - num:
+    :return - The updated list of the letters he guessed - list, the updated number of wrong guesses - num:
     """
     letter_guessed = input("Guess a letter:").lower()
     while not try_update_letter_guessed(letter_guessed, old_letters_guessed): #i want to check if the letter is valid
@@ -171,20 +186,25 @@ def guessing_a_letter(old_letters_guessed, secret_word, num_of_tries):
     return old_letters_guessed, num_of_tries
 
 def main():
-    opening_screen()
-    secret_word = choose_word(*get_data_from_user())
-    num_of_tries = 0
-    old_letter_guessed = []
+    print_opening_screen()
+    path = get_path_from_user()
+    index = get_index_from_user()
+    secret_word = choose_word(path, index)
+    number_of_tries = 0
+    previously_guessed_letters = []
     print("\nLet's start!")
-    print_hangman(num_of_tries)
-    print(show_hidden_word(secret_word, old_letter_guessed))
-    while num_of_tries < MAX_TRIES:
-        old_letter_guessed, num_of_tries = guessing_a_letter(old_letter_guessed, secret_word, num_of_tries)
-        if check_win(secret_word, old_letter_guessed):
-            print("WIN")
+    print_hangman(number_of_tries)
+    print(show_hidden_word(secret_word, previously_guessed_letters))
+    if_won = False
+    while number_of_tries < MAX_TRIES:
+        previously_guessed_letters, num_of_tries = guessing_a_letter(previously_guessed_letters, secret_word, number_of_tries)
+        if check_win(secret_word, previously_guessed_letters):
+            if_won = True
             break
-    if num_of_tries == MAX_TRIES:
-        print("LOSE \nThe word was {}".format(secret_word.upper()))
+    if if_won:
+        print("WIN")
+    else:
+        print(f"LOSE \nThe word was {secret_word.upper()}")
 
 
 if __name__ == "__main__":
