@@ -63,8 +63,7 @@ def get_path_from_user() -> str:
     :return The file path which inclides the words to choose from - string :
     """
     for attempt in range(MAX_INPUT_ATTEMPTS + 1):
-        path = input("Enter file path: ")
-        path = path.strip('"\'')
+        path = input("Enter file path: ").strip('"\'')
         if os.path.isfile(path) and read_file(path):
             return path
         else:
@@ -96,7 +95,7 @@ def read_file(path) -> list:
         words = words_file.readlines()
     return words
 
-def choose_word(path, index) -> str:
+def choose_word(path: str, index: int) -> str:
     """
     The funcs return the word in the number of the index.
     :param path - the path of the file which contains the words, str:
@@ -108,13 +107,13 @@ def choose_word(path, index) -> str:
     word = words[index_in_bounds]
     return word
 
-def print_hangman(num_of_tries) -> None:
+def print_hangman(number_of_tries) -> None:
     """
     The funcs prints the hangman state according to the number of tries.
-    :param num_of_tries - how many times the player guessed wrong - int:
+    :param number_of_tries - how many times the player guessed wrong - int:
     :return - Void:
     """
-    print(HANGMAN_PHOTOS[num_of_tries], "\n")
+    print(HANGMAN_PHOTOS[number_of_tries], "\n")
 
 def show_hidden_word(secret_word, old_letters_guessed) -> str:
     """
@@ -165,30 +164,31 @@ def check_win(secret_word, old_letters_guessed) -> bool:
     """
     return "_" not in show_hidden_word(secret_word, old_letters_guessed)
 
-def guessing_a_letter(old_letters_guessed, secret_word, num_of_tries) -> tuple[list, int]:
+def guessing_a_letter(old_letters_guessed, secret_word, number_of_tries) -> tuple[list, int]:
     """
     The funcs lets the player guess a letter, show him the state of the word and the state of the hangman and old
     guessed letters if he guessed wrong.
     :param old_letters_guessed - all the letters he already guessed - list:
     :param secret_word - the word he needs to guess - string:
-    :param num_of_tries - the number of wrong guesses - num:
+    :param number_of_tries - the number of wrong guesses - num:
     :return - The updated list of the letters he guessed - list, the updated number of wrong guesses - num:
     """
     letter_guessed = input("Guess a letter:").lower()
     while not try_update_letter_guessed(letter_guessed, old_letters_guessed): #i want to check if the letter is valid
         letter_guessed = input("Guess a letter:").lower()
+
     old_letters_guessed.append(letter_guessed)
     if letter_guessed not in secret_word:
         print(":(")
-        num_of_tries += 1
-        print_hangman(num_of_tries)
+        number_of_tries += 1
+        print_hangman(number_of_tries)
     print(show_hidden_word(secret_word, old_letters_guessed))
-    return old_letters_guessed, num_of_tries
+    return old_letters_guessed, number_of_tries
 
 def main():
     print_opening_screen()
     path = get_path_from_user()
-    index = get_index_from_user()
+    index = int(get_index_from_user())
     secret_word = choose_word(path, index)
     number_of_tries = 0
     previously_guessed_letters = []
@@ -197,7 +197,7 @@ def main():
     print(show_hidden_word(secret_word, previously_guessed_letters))
     if_won = False
     while number_of_tries < MAX_TRIES:
-        previously_guessed_letters, num_of_tries = guessing_a_letter(previously_guessed_letters, secret_word, number_of_tries)
+        previously_guessed_letters, number_of_tries = guessing_a_letter(previously_guessed_letters, secret_word, number_of_tries)
         if check_win(secret_word, previously_guessed_letters):
             if_won = True
             break
@@ -209,3 +209,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
